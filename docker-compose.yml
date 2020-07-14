@@ -1,0 +1,13 @@
+version: '3.8'
+services:
+  bot:
+    build: .
+    depends_on:
+      - db
+    volumes:
+      - ./bot:/app/bot
+      - ./alembic/versions:/app/alembic/versions
+
+  db:
+    image: 'postgres:13'
+    env_file: .env
