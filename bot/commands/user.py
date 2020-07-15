@@ -120,7 +120,11 @@ class UserCmds(commands.Cog, name='Comandos para el usuario'):
 
         contributors = discord.utils.get(ctx.guild.roles, name='Contributors')
 
-        if member and (not isinstance(member, int)) and (not ctx.author.top_role > contributors):
+        if contributors is None:
+            await ctx.send('No has creado el rol Contributors, por favor crealo.')
+            return False
+
+        if member and (not isinstance(member, int)) and (not ctx.author.top_role >= contributors):
             await ctx.send('No puedes ver el historial de este usuario.')
             return False
 

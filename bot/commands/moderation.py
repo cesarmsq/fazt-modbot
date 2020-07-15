@@ -16,9 +16,12 @@ class ModerationCmds(commands.Cog, name='Moderación'):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-    def cog_check(self, ctx):
+    def cog_check(self, ctx: commands.Context):
         # TODO !!!!
         role = discord.utils.get(ctx.guild.roles, name='Contributors')
+        if role is None:
+            await ctx.send('No has creado el rol Contributors, por favor crealo.')
+            return False
         return ctx.author.top_role and ctx.author.top_role >= role
 
     async def moderate(
