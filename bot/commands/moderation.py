@@ -19,7 +19,7 @@ class ModerationCmds(commands.Cog, name='Moderación'):
     def cog_check(self, ctx):
         # TODO !!!!
         role = discord.utils.get(ctx.guild.roles, name='Contributors')
-        return ctx.author.top_role > role
+        return ctx.author.top_role and ctx.author.top_role >= role
 
     async def moderate(
             self,
@@ -30,7 +30,7 @@ class ModerationCmds(commands.Cog, name='Moderación'):
             member: discord.Member,
             after_duration: callable = None
     ):
-        if not ctx.author.top_role > member.top_role:
+        if member.top_role and not ctx.author.top_role > member.top_role:
             return await ctx.send('No puedes moderar a este usuario.')
 
         args = args.split()

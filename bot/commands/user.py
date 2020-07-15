@@ -115,6 +115,9 @@ class UserCmds(commands.Cog, name='Comandos para el usuario'):
 
     @staticmethod
     async def can_see_history(ctx: commands.Context, member: Optional[discord.Member]):
+        if not ctx.author.top_role:
+            return False
+
         contributors = discord.utils.get(ctx.guild.roles, name='Contributors')
 
         if member and (not isinstance(member, int)) and (not ctx.author.top_role > contributors):
