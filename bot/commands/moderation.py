@@ -1,3 +1,4 @@
+from asyncio import create_task
 import discord
 from discord.ext import commands
 from datetime import datetime, timedelta
@@ -20,7 +21,9 @@ class ModerationCmds(commands.Cog, name='Moderación'):
         # TODO !!!!
         role = discord.utils.get(ctx.guild.roles, name='Contributors')
         if role is None:
-            await ctx.send('No has creado el rol Contributors, por favor crealo.')
+            create_task(
+                ctx.send('No has creado el rol Contributors, por favor crealo.')
+            )
             return False
         return ctx.author.top_role and ctx.author.top_role >= role
 
