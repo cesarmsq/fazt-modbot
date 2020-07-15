@@ -47,8 +47,20 @@ class UnModerationCmds(commands.Cog, name='Revocar moderación'):
 
     @commands.command(help='Permite un usuario en el servidor que anteriormente habia sido baneado', usage=usage)
     @commands.has_permissions(ban_members=True)
-    async def unban(self, ctx: commands.Context, member: discord.Member, *, reason: str = ''):
-        await self.unmoderate(ctx, member.unban, 'desbaneado', 'baneado', reason, member)
+    async def unban(self, ctx: commands.Context, member_name: str, *, reason: str = ''):
+        if member_name[0] == '@':
+            member_name = member_name[1:]
+
+        bans = await ctx.guild.bans()
+        ban = discord.utils.find(lambda b: b.user.name == member_name, bans)
+
+        if ban is None:
+            await ctx.send('No se encontró el ban')
+            return
+
+        user = ban.user
+
+        await self.unmoderate(ctx, cb(ctx.guild.unban, user), 'desbaneado', 'baneado', reason, user)
 
     @commands.command(help='Permite a un usuario silenciado hablar y escribir nuevamente', usage=usage)
     @commands.has_permissions(manage_messages=True)

@@ -92,7 +92,8 @@ class Listeners(commands.Cog):
         }
 
         original_errors = {
-            discord.Forbidden: forbidden_message
+            discord.Forbidden: forbidden_message,
+            discord.NotFound: '404: No encontrado.'
         }
 
         original_type = type(original)
