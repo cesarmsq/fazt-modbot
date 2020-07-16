@@ -1,6 +1,6 @@
 from typing import Optional, Union, List
 
-import discord
+from discord import Embed, Color, Member, TextChannel, utils
 from discord.ext import commands
 
 from .. import crud
@@ -43,25 +43,25 @@ class UserCmds(commands.Cog, name='Comandos para el usuario'):
         if command_name:
             command = self.bot.get_command(command_name)
             if command is None:
-                embed = discord.Embed(
+                embed = Embed(
                     title=f'El comando {command_name} no existe',
                     description=f'Usa `{ctx.prefix}help` para obtener una lista sobre los comandos.',
-                    color=discord.Color.red()
+                    color=Color.red()
                 )
                 await ctx.send(embed=embed)
             else:
-                embed = discord.Embed(
+                embed = Embed(
                     title=f'Ayuda sobre el comando {command.name}',
                     description=command.help or no_description_msg,
-                    color=discord.Color.red()
+                    color=Color.red()
                 )
                 embed.description += display_info(command)
                 await ctx.send(embed=embed)
         else:
-            embed = discord.Embed(
+            embed = Embed(
                 title='Ayuda',
                 description=f'Prefix: `{ctx.prefix}`',
-                color=discord.Color.red()
+                color=Color.red()
             )
 
             embed.description += f'\nUsa `{ctx.prefix}{ctx.command} <comando>` para obtener más ' \
@@ -80,7 +80,7 @@ class UserCmds(commands.Cog, name='Comandos para el usuario'):
             await ctx.send(embed=embed)
 
     def show_history(
-            self, moderation: List[Moderation], embed: discord.Embed, include_type=True, page: Optional[int] = None
+            self, moderation: List[Moderation], embed: Embed, include_type=True, page: Optional[int] = None
     ):
         embed.description += '\n'
 
@@ -103,8 +103,8 @@ class UserCmds(commands.Cog, name='Comandos para el usuario'):
             moderator = None
 
             if moderator_id:
-                channel: discord.TextChannel
-                moderator = discord.utils.get(self.bot.users, id=int(moderator_id))
+                channel: TextChannel
+                moderator = utils.get(self.bot.users, id=int(moderator_id))
 
             if moderator:
                 embed.description += f'por {moderator.mention}'
@@ -114,11 +114,11 @@ class UserCmds(commands.Cog, name='Comandos para el usuario'):
         return has_history
 
     @staticmethod
-    async def can_see_history(ctx: commands.Context, member: Optional[discord.Member]):
+    async def can_see_history(ctx: commands.Context, member: Optional[Member]):
         if not ctx.author.top_role:
             return False
 
-        contributors = discord.utils.get(ctx.guild.roles, name='Contributors')
+        contributors = utils.get(ctx.guild.roles, name='Contributors')
 
         if contributors is None:
             await ctx.send('No has creado el rol Contributors, por favor crealo.')
@@ -132,7 +132,7 @@ class UserCmds(commands.Cog, name='Comandos para el usuario'):
 
     @commands.command()
     async def history(
-            self, ctx: commands.Context, member_or_page: Union[discord.Member, int] = 1, page: int = 1
+            self, ctx: commands.Context, member_or_page: Union[Member, int] = 1, page: int = 1
     ):
         if not await self.can_see_history(ctx, member_or_page):
             return
@@ -144,10 +144,10 @@ class UserCmds(commands.Cog, name='Comandos para el usuario'):
 
         history, total_pages = crud.get_all_moderations(ctx.guild.id, member.id, page=page)
 
-        embed = discord.Embed(
+        embed = Embed(
             title=f'Historial de moderación',
             description=f'Historial de {member.mention}',
-            color=discord.Color.red()
+            color=Color.red()
         )
 
         has_history = self.show_history(history, embed, page=page)
@@ -163,7 +163,7 @@ class UserCmds(commands.Cog, name='Comandos para el usuario'):
         await ctx.send(embed=embed)
 
     @commands.command()
-    async def warninfo(self, ctx: commands.Context, member: discord.Member):
+    async def warninfo(self, ctx: commands.Context, member: Member):
         if not await self.can_see_history(ctx, member):
             return
 
@@ -172,10 +172,10 @@ class UserCmds(commands.Cog, name='Comandos para el usuario'):
 
         warnings = crud.get_moderations('advertido', member.id, ctx.guild.id)
 
-        embed = discord.Embed(
+        embed = Embed(
             title=f'Historial de warnings',
             description=f'Warnings de {member.mention}',
-            color=discord.Color.red()
+            color=Color.red()
         )
 
         self.show_history(warnings, embed, include_type=False)

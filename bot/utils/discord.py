@@ -1,7 +1,7 @@
 from .. import crud
 
-from discord import Message
-from discord.ext.commands import Bot, when_mentioned_or
+from discord import Message, NotFound
+from discord.ext.commands import Bot, BadArgument, MemberConverter, when_mentioned_or
 
 
 def get_prefix(bot: Bot, msg: Message):
@@ -11,12 +11,34 @@ def get_prefix(bot: Bot, msg: Message):
     return when_mentioned_or(*prefixes)(bot, msg)
 
 
-async def unmoderate(
-        func: callable, member_id: int, guild_id: int, moderation_type: str, expiration_needed: bool = True
-):
-    if func:
-        moderation = crud.get_moderation(moderation_type, member_id, guild_id)
+async def delete_message(message):
+    try:
+        await message.delete()
+    except NotFound:
+        pass
 
-        if moderation.expired or not expiration_needed:
-            await func()
-            crud.revoke_moderation(moderation)
+
+class MemberAndArgs(MemberConverter):
+    async def convert(self, ctx, argument):
+        members = []
+        args = []
+        members_or_args = filter(bool, argument.split(' '))
+
+        latest_was_arg = False
+        for member_or_arg in members_or_args:
+            if latest_was_arg:
+                args.append(member_or_arg)
+                continue
+
+            try:
+                member = await super().convert(ctx, member_or_arg)
+            except BadArgument:
+                latest_was_arg = True
+                args.append(member_or_arg)
+            else:
+                members.append(member)
+
+        if not members:
+            raise BadArgument
+
+        return members, ' '.join(args)

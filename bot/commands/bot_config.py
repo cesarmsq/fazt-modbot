@@ -1,4 +1,4 @@
-import discord
+from discord import Color, Embed
 from discord.ext import commands
 
 from .. import crud
@@ -17,10 +17,10 @@ class BotConfigCmds(commands.Cog, name='Configuraciones del bot (para developers
     @commands.command()
     async def debug(self, ctx: commands.Context, value: bool):
         crud.set_guild_setting(ctx.guild.id, 'debug', to_str_bool(value))
-        embed = discord.Embed(
+        embed = Embed(
             title='Debug editado! ✅',
             description=f'Debug ha sido puesto como `{value}`',
-            color=discord.Color.red()
+            color=Color.red()
         )
         await ctx.send(embed=embed)
 
@@ -33,13 +33,12 @@ class BotConfigCmds(commands.Cog, name='Configuraciones del bot (para developers
             for arg in args:
                 self.bot.reload_extension(arg)
         else:
-            # If there are more extensions in the future, they must be added.
             self.bot.reload_extension('bot.cogs')
             self.bot.reload_extension('bot.commands')
 
-        embed = discord.Embed(
+        embed = Embed(
             title='Reloaded ✅',
-            color=discord.Color.red(),
+            color=Color.red(),
             description='Bot recargado satisfactoriamente!'
         )
 

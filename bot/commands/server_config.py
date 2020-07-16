@@ -1,4 +1,4 @@
-import discord
+from discord import Embed, Color, TextChannel
 from discord.ext import commands
 
 from .. import crud
@@ -27,16 +27,16 @@ class ServerConfigCmds(commands.Cog, name='Configuraciones del bot para el servi
         pass
 
     @set.command(name='channel', invoke_without_command=True)
-    async def set_channel(self, ctx: commands.Context, setting, channel: discord.TextChannel):
+    async def set_channel(self, ctx: commands.Context, setting, channel: TextChannel):
         if setting not in settings:
             return
 
         crud.set_guild_setting(ctx.guild.id, settings[setting], str(channel.id))
 
-        embed = discord.Embed(
+        embed = Embed(
             title='Canal colocado! ✅',
             description='El canal ha sido colocado.',
-            color=discord.Color.red()
+            color=Color.red()
         )
 
         await ctx.send(embed=embed)
@@ -54,19 +54,19 @@ class ServerConfigCmds(commands.Cog, name='Configuraciones del bot para el servi
 
         if new_prefixes:
             crud.set_guild_setting(ctx.guild.id, 'prefix', new_prefixes)
-            embed = discord.Embed(
+            embed = Embed(
                 title='Prefix editado! ✅',
                 description=f'Los prefixes ahora son: {format_prefixes(new_prefixes)}',
-                color=discord.Color.red()
+                color=Color.red()
             )
             await ctx.send(embed=embed)
         else:
             guild = crud.get_guild(ctx.guild.id)
             prefixes = crud.get_guild_setting(guild, 'prefix')
-            embed = discord.Embed(
+            embed = Embed(
                 title='Prefix del Bot',
                 description=f'Los prefixes actuales son: {format_prefixes(prefixes)}',
-                color=discord.Color.red()
+                color=Color.red()
             )
             await ctx.send(embed=embed)
 
@@ -85,10 +85,10 @@ class ServerConfigCmds(commands.Cog, name='Configuraciones del bot para el servi
 
         crud.set_guild_setting(ctx.guild.id, settings[name], '')
 
-        embed = discord.Embed(
+        embed = Embed(
             title='Configuración eliminada! ✅',
             description='La configuración ha sido eliminada correctamente.',
-            color=discord.Color.red()
+            color=Color.red()
         )
 
         await ctx.send(embed=embed)

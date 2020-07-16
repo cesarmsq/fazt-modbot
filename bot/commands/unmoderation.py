@@ -1,4 +1,4 @@
-import discord
+from discord import Member, Embed, Color, utils
 from discord.ext import commands
 
 from .. import crud
@@ -22,7 +22,7 @@ class UnModerationCmds(commands.Cog, name='Revocar moderación'):
             title: str,
             moderation_type: str,
             reason: str,
-            member: discord.Member
+            member: Member
     ):
         await unmod(callback, member.id, ctx.guild.id, moderation_type, expiration_needed=False)
         await ctx.message.delete()
@@ -31,10 +31,10 @@ class UnModerationCmds(commands.Cog, name='Revocar moderación'):
         channel = crud.get_set_channel(self.bot, guild, 'moderation_logs_channel')
 
         if channel:
-            embed = discord.Embed(
+            embed = Embed(
                 title=f'Usuario {title}',
                 description=f'El usuario {member.mention} ha sido {title} por {ctx.author.mention}',
-                color=discord.Color.red()
+                color=Color.red()
             )
 
             if reason:
@@ -52,7 +52,7 @@ class UnModerationCmds(commands.Cog, name='Revocar moderación'):
             member_name = member_name[1:]
 
         bans = await ctx.guild.bans()
-        ban = discord.utils.find(lambda b: b.user.name == member_name, bans)
+        ban = utils.find(lambda b: b.user.name == member_name, bans)
 
         if ban is None:
             await ctx.send('No se encontró el ban')
@@ -64,6 +64,6 @@ class UnModerationCmds(commands.Cog, name='Revocar moderación'):
 
     @commands.command(help='Permite a un usuario silenciado hablar y escribir nuevamente', usage=usage)
     @commands.has_permissions(manage_messages=True)
-    async def unmute(self, ctx: commands.Context, member: discord.Member, *, reason: str = ''):
-        role = discord.utils.get(ctx.guild.roles, name='Muted')
+    async def unmute(self, ctx: commands.Context, member: Member, *, reason: str = ''):
+        role = utils.get(ctx.guild.roles, name='Muted')
         await self.unmoderate(ctx, cb(member.remove_roles, role), 'des-silenciado', 'silenciado', reason, member)
