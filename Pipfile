@@ -4,7 +4,6 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
-python-dotenv = "*"
 pre-commit = "*"
 
 [packages]
@@ -12,6 +11,7 @@ alembic = "*"
 "discord.py" = "*"
 psycopg2 = "*"
 SQLAlchemy = "*"
+python-dotenv = "*"
 
 [requires]
 python_version = "3.8"
