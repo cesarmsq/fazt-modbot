@@ -1,45 +1,41 @@
 from discord import Color, Embed
-from discord.ext import commands
+from discord.ext.commands import Bot, Cog, Context, command
 
 from .. import crud
 from ..config import Settings
 from ..utils import to_str_bool
 
 
-# TODO Put the help and aliases in the commands here
-class BotConfigCmds(commands.Cog, name='Configuraciones del bot (para developers)'):
-    def __init__(self, bot: commands.Bot):
+class BotConfigCmds(Cog):
+    def __init__(self, bot: Bot):
         self.bot = bot
 
-    def cog_check(self, ctx: commands.Context):
+    def cog_check(self, ctx: Context):
         return ctx.author.id in Settings.DEVELOPERS_ID
 
-    @commands.command()
-    async def debug(self, ctx: commands.Context, value: bool):
-        crud.set_guild_setting(ctx.guild.id, 'debug', to_str_bool(value))
+    @command()
+    async def debug(self, ctx: Context, value: bool):
+        crud.set_guild_setting(ctx.guild.id, "debug", to_str_bool(value))
         embed = Embed(
-            title='Debug editado! ✅',
-            description=f'Debug ha sido puesto como `{value}`',
-            color=Color.red()
+            title="Debug editado! ✅",
+            description=f"Debug ha sido puesto como `{value}`",
+            color=Color.red(),
         )
         await ctx.send(embed=embed)
 
-    @commands.command(help='Recarga el bot', usage='[extención]')
-    async def reload(self, ctx: commands.Context, *args: str):
-        if ctx.author.id not in Settings.DEVELOPERS_ID:
-            raise commands.MissingPermissions
-
+    @command(help="Recarga el bot", usage="[extención]")
+    async def reload(self, ctx: Context, *args: str):
         if args:
             for arg in args:
                 self.bot.reload_extension(arg)
         else:
-            self.bot.reload_extension('bot.cogs')
-            self.bot.reload_extension('bot.commands')
+            self.bot.reload_extension("bot.cogs")
+            self.bot.reload_extension("bot.commands")
 
         embed = Embed(
-            title='Reloaded ✅',
+            title="Reloaded ✅",
             color=Color.red(),
-            description='Bot recargado satisfactoriamente!'
+            description="Bot recargado satisfactoriamente!",
         )
 
         await ctx.send(embed=embed)

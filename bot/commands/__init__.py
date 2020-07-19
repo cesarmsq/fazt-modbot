@@ -1,8 +1,8 @@
-from .user import UserCmds
 from .bot_config import BotConfigCmds
 from .moderation import ModerationCmds
-from .unmoderation import UnModerationCmds
 from .server_config import ServerConfigCmds
+from .unmoderation import UnModerationCmds
+from .user import UserCmds
 
 
 def setup(bot):

@@ -1,4 +1,4 @@
-from .main import bot
 from .config import Settings
+from .main import bot
 
 bot.run(Settings.DISCORD_TOKEN)

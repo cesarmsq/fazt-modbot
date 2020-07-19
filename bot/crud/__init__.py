@@ -1,4 +1,4 @@
-from .main import *
+from .main import *  # isort:skip
 from .guild import *
-from .settings import *
 from .moderation import *
+from .settings import *

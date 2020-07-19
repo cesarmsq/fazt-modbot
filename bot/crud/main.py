@@ -1,7 +1,8 @@
 from math import ceil
 from typing import Optional
 
-from sqlalchemy.orm import Session, Query
+from sqlalchemy.orm import Query, Session
+
 from ..database import Base, session
 
 
@@ -11,7 +12,7 @@ def get_query(model: Base, db: Optional[Session] = None):
 
 def find(model: Base, db: Optional[Session] = None, **kwargs):
     if not kwargs:
-        raise TypeError('You must provide at least one keyword argument')
+        raise TypeError("You must provide at least one keyword argument")
     query = get_query(model, db)
     return query.filter_by(**kwargs).first()
 
