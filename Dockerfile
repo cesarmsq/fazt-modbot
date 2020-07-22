@@ -4,10 +4,13 @@ COPY entrypoint.sh .
 
 WORKDIR /app
 
-COPY requirements.txt .
+COPY Pipfile Pipfile.lock ./
+
+ENV PIP_NO_CACHE_DIR false
 
 RUN apk add --no-cache --virtual .build-deps gcc musl-dev postgresql-dev && \
-    pip install -r requirements.txt --no-cache-dir
+    pip install pipenv --no-cache-dir && \
+    pipenv install --system --deploy --ignore-pipfile
 
 COPY . .
 
