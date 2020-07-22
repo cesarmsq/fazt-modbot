@@ -140,7 +140,7 @@ class ModerationCmds(Cog):
             )
 
     @command(
-        help="Elimina los últimos [cantidad] mensajes o el último si ningún argumento es usado."
+        help="Elimina los últimos [cantidad] mensajes o el último si ningún argumento es usado. "
         "Si se especifica un miembro, [cantidad] sera la cantidad de mensajes a revisar pero puede o no ser"
         "la cantidad de mensajes eliminados del miembro.",
         usage="[cantidad] [miembro]",

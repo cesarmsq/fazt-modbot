@@ -81,6 +81,15 @@ class Listeners(Cog):
                 create_task(revoke_moderation(guild, moderation))
 
     @Cog.listener()
+    async def on_member_join(self, member: Member):
+        guild = member.guild
+        moderation = crud.get_moderation("silenciado", member.id, guild.id)
+
+        if moderation and not moderation.expired:
+            role = utils.get(guild.roles, name="Muted")
+            await member.add_roles(role)
+
+    @Cog.listener()
     async def on_command_error(self, ctx: Context, error: CommandError):
         await ctx.message.delete()
         cmd = ctx.message.content.split()[0]
