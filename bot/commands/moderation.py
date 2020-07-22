@@ -6,7 +6,7 @@ from asyncio import create_task
 from datetime import datetime, timedelta
 from typing import Callable, Optional
 
-from discord import Color, Embed, Forbidden, Member, PermissionOverwrite, utils
+from discord import Color, Embed, Forbidden, Member, Message, PermissionOverwrite, utils
 from discord.ext.commands import Bot, Cog, Context, Greedy, command, has_permissions
 
 from .. import crud
@@ -140,16 +140,30 @@ class ModerationCmds(Cog):
             )
 
     @command(
-        help="Elimina los últimos <cantidad> mensajes o el último si ningún argumento es usado.",
-        usage="[cantidad]",
+        help="Elimina los últimos [cantidad] mensajes o el último si ningún argumento es usado."
+        "Si se especifica un miembro, [cantidad] sera la cantidad de mensajes a revisar pero puede o no ser"
+        "la cantidad de mensajes eliminados del miembro.",
+        usage="[cantidad] [miembro]",
     )
     @has_permissions(manage_messages=True)
-    async def clear(self, ctx: Context, amount: int = 1):
-        await ctx.channel.purge(limit=amount + 1)
+    async def clear(
+        self, ctx: Context, amount: int = 1, member: Optional[MentionedMember] = None
+    ):
+        await ctx.message.delete()
+
+        def is_member(message: Message):
+            return message.author == member
+
+        check = None
+        if member:
+            check = is_member
+
+        await ctx.channel.purge(limit=amount, check=check)
 
         embed = Embed(
             title="Mensajes eliminados! ✅",
-            description=f"{amount} mensajes han sido eliminados satisfactoriamente\nEste mensaje va a ser eliminado en 5 segundos",
+            description=f"{amount} mensajes han sido eliminados satisfactoriamente\n"
+            f"Este mensaje va a ser eliminado en 5 segundos",
             color=Color.red(),
         )
 
