@@ -1,3 +1,7 @@
+"""
+Copyright 2020 Fazt Community ~ All rights reserved. MIT license.
+"""
+
 from sqlalchemy import BigInteger, Column, ForeignKey, Integer, String
 
 from . import Base

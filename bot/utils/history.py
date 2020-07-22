@@ -1,3 +1,7 @@
+"""
+Copyright 2020 Fazt Community ~ All rights reserved. MIT license.
+"""
+
 from typing import List, Optional, Union
 
 from discord import Embed, Member, TextChannel, utils

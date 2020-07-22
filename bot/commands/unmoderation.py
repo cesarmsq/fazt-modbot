@@ -1,3 +1,7 @@
+"""
+Copyright 2020 Fazt Community ~ All rights reserved. MIT license.
+"""
+
 from typing import Callable
 
 from discord import Color, Embed, Member, utils

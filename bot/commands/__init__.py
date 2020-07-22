@@ -1,3 +1,7 @@
+"""
+Copyright 2020 Fazt Community ~ All rights reserved. MIT license.
+"""
+
 from .bot_config import BotConfigCmds
 from .moderation import ModerationCmds
 from .server_config import ServerConfigCmds

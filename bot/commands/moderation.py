@@ -1,3 +1,7 @@
+"""
+Copyright 2020 Fazt Community ~ All rights reserved. MIT license.
+"""
+
 from asyncio import create_task
 from datetime import datetime, timedelta
 from typing import Callable, Optional

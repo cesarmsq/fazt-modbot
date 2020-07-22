@@ -1,3 +1,7 @@
+"""
+Copyright 2020 Fazt Community ~ All rights reserved. MIT license.
+"""
+
 from discord import Color, Embed
 from discord.ext.commands import Bot, Cog, Context, command
 
