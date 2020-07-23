@@ -7,6 +7,7 @@ from typing import List
 
 from discord import Member, Message, NotFound, utils
 from discord.ext.commands import BadArgument, Bot, Converter, IDConverter
+from discord.ext.menus import Menu, button
 
 from .. import crud
 
@@ -46,7 +47,7 @@ class MentionedMember(IDConverter):
         return result
 
 
-to_minutes = {"d": 60 * 24, "h": 60, "m": 1, "s": 1 / 60}
+to_minutes = {"w": 60 * 24 * 7, "d": 60 * 24, "h": 60, "m": 1, "s": 1 / 60}
 
 
 def parse_minutes(s: str) -> int:
@@ -80,3 +81,27 @@ class Duration(Converter):
             raise BadArgument
 
         return result
+
+
+class Confirm(Menu):
+    def __init__(self, msg):
+        super().__init__(timeout=30.0, delete_message_after=True)
+        self.msg = msg
+        self.result = None
+
+    async def send_initial_message(self, ctx, channel):
+        return await channel.send(self.msg)
+
+    @button("\N{WHITE HEAVY CHECK MARK}")
+    async def do_confirm(self, payload):
+        self.result = True
+        self.stop()
+
+    @button("\N{CROSS MARK}")
+    async def do_deny(self, payload):
+        self.result = False
+        self.stop()
+
+    async def prompt(self, ctx):
+        await self.start(ctx, wait=True)
+        return self.result

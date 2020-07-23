@@ -85,7 +85,7 @@ class Listeners(Cog):
         guild = member.guild
         moderation = crud.get_moderation("silenciado", member.id, guild.id)
 
-        if moderation and not moderation.expired and not moderation.revoked:
+        if moderation and not (moderation.expired or moderation.revoked):
             role = utils.get(guild.roles, name="Muted")
             await member.add_roles(role)
 

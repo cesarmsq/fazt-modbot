@@ -10,7 +10,7 @@ from discord import Color, Embed, Forbidden, Member, Message, PermissionOverwrit
 from discord.ext.commands import Bot, Cog, Context, Greedy, command, has_permissions
 
 from .. import crud
-from ..utils import Duration, MentionedMember
+from ..utils import Confirm, Duration, MentionedMember
 from ..utils import callback as cb
 from ..utils import delete_message, get_value
 from ..utils import unmoderate as unmod
@@ -149,7 +149,12 @@ class ModerationCmds(Cog):
     async def clear(
         self, ctx: Context, amount: int = 1, member: Optional[MentionedMember] = None
     ):
+        confirm = await Confirm(f"Clear {amount} messages?").prompt(ctx)
+
         await ctx.message.delete()
+
+        if not confirm:
+            return
 
         def is_member(message: Message):
             return message.author == member

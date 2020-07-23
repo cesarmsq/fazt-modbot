@@ -6,9 +6,9 @@ WORKDIR /app
 
 COPY Pipfile Pipfile.lock ./
 
-ENV PIP_NO_CACHE_DIR false
+ENV PIP_NO_CACHE_DIR=1
 
-RUN apk add --no-cache --virtual .build-deps gcc musl-dev postgresql-dev && \
+RUN apk add --no-cache --virtual .build-deps gcc musl-dev postgresql-dev git && \
     pip install pipenv --no-cache-dir && \
     pipenv install --system --deploy --ignore-pipfile
 
