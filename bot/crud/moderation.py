@@ -8,12 +8,13 @@ from typing import Optional
 from sqlalchemy.orm import Session
 
 from ..database import session
+from ..enums import ModerationType
 from ..models import Moderation
 from . import create_one, get_query, paginate
 
 
 def moderate(
-    moderation_type: str,
+    moderation_type: ModerationType,
     user_id: int,
     date: datetime,
     expiration_date: Optional[datetime],
@@ -33,7 +34,7 @@ def moderate(
     )
 
 
-def get_moderation(moderation_type: str, user_id: int, guild_id: int):
+def get_moderation(moderation_type: ModerationType, user_id: int, guild_id: int):
     return (
         Moderation.query.filter_by(
             type=moderation_type, user_id=user_id, guild_id=guild_id
@@ -43,7 +44,9 @@ def get_moderation(moderation_type: str, user_id: int, guild_id: int):
     )
 
 
-def get_moderations(moderation_type: str, user_id: int, guild_id: int, page: int = 1):
+def get_moderations(
+    moderation_type: ModerationType, user_id: int, guild_id: int, page: int = 1
+):
     return paginate(
         Moderation.query.filter_by(
             type=moderation_type, user_id=user_id, guild_id=guild_id

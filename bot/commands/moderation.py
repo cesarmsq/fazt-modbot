@@ -10,9 +10,10 @@ from discord import Color, Embed, Forbidden, Member, Message, PermissionOverwrit
 from discord.ext.commands import Bot, Cog, Context, Greedy, command, has_permissions
 
 from .. import crud
+from ..enums import GuildSetting, ModerationType
 from ..utils import Confirm, Duration, MentionedMember
 from ..utils import callback as cb
-from ..utils import delete_message, get_value
+from ..utils import delete_message, get_role, get_value
 from ..utils import unmoderate as unmod
 
 no_logs_channel_msg = (
@@ -24,10 +25,10 @@ usage = "<usuarios> [duración] <razón>` Ejemplo de la duración: `1d5h3m10s` (
 usage2 = "<usuarios> <razón>"
 
 
-async def unmoderate(ctx, title, member, after_duration, expiration_date):
+async def unmoderate(ctx, moderation_type, member, after_duration, expiration_date):
     if expiration_date:
         await utils.sleep_until(expiration_date)
-        await unmod(after_duration, member.id, ctx.guild.id, title)
+        await unmod(after_duration, member.id, ctx.guild.id, moderation_type)
 
 
 class ModerationCmds(Cog):
@@ -35,11 +36,14 @@ class ModerationCmds(Cog):
         self.bot = bot
 
     def cog_check(self, ctx: Context):
-        # TODO !!!!
-        role = utils.get(ctx.guild.roles, name="Contributors")
+        role = get_role(ctx.guild, GuildSetting.MIN_MOD_ROLE)
         if role is None:
+            # TODO !!!!
             create_task(
-                ctx.send("No has creado el rol Contributors, por favor crealo.")
+                ctx.send(
+                    "Por favor configura el mínimo rol requerido para usar los comandos de moderación: "
+                    f"`{ctx.prefix}set role minmod @Rol`."
+                )
             )
             return False
         return ctx.author.top_role and ctx.author.top_role >= role
@@ -48,7 +52,7 @@ class ModerationCmds(Cog):
         self,
         ctx: Context,
         callback: Callable,
-        title: str,
+        moderation_type: ModerationType,
         reason: str,
         member: Member,
         emoji: str = "",
@@ -70,6 +74,7 @@ class ModerationCmds(Cog):
 
         value = get_value(reason, duration, expiration_date)
 
+        title = moderation_type.value
         try:
             await member.send(
                 f"Has sido {title} en {ctx.guild.name}. Recuerda seguir las reglas!"
@@ -83,7 +88,7 @@ class ModerationCmds(Cog):
 
         await callback(reason=reason)
         crud.moderate(
-            title,
+            moderation_type,
             member.id,
             moderation_date,
             expiration_date,
@@ -93,7 +98,7 @@ class ModerationCmds(Cog):
         )
 
         guild = crud.get_guild(member.guild.id)
-        channel = crud.get_set_channel(self.bot, guild, "moderation_logs_channel")
+        channel = crud.get_set_channel(self.bot, guild, GuildSetting.MODERATION_CHANNEL)
 
         if channel:
             embed = Embed(
@@ -108,7 +113,9 @@ class ModerationCmds(Cog):
                 embed.set_footer(text="Expira:")
 
             message = member.mention
-            rules_channel = crud.get_set_channel(self.bot, guild, "rules_channel")
+            rules_channel = crud.get_set_channel(
+                self.bot, guild, GuildSetting.RULES_CHANNEL
+            )
 
             if rules_channel:
                 message += " lee las reglas: " + rules_channel.mention
@@ -121,22 +128,30 @@ class ModerationCmds(Cog):
                 delete_after=10,
             )
 
-        create_task(unmoderate(ctx, title, member, after_duration, expiration_date))
+        create_task(
+            unmoderate(ctx, moderation_type, member, after_duration, expiration_date)
+        )
 
     @command(help="Advierte a un usuario.", usage=usage2)
     async def warn(
         self, ctx: Context, members: Greedy[MentionedMember], *, reason: str
     ):
-        role = utils.get(ctx.guild.roles, name="Warning")
+        role = get_role(ctx.guild, GuildSetting.WARNING_ROLE)
 
         if role is None:
             role = await ctx.guild.create_role(
                 name="Warning", color=Color.darker_grey()
             )
+            crud.set_guild_setting(ctx.guild.id, GuildSetting.WARNING_ROLE, role.id)
 
         for member in members:
             await self.moderate(
-                ctx, cb(member.add_roles, role), "advertido", reason, member, "📢"
+                ctx,
+                cb(member.add_roles, role),
+                ModerationType.WARN,
+                reason,
+                member,
+                "📢",
             )
 
     @command(
@@ -149,7 +164,9 @@ class ModerationCmds(Cog):
     async def clear(
         self, ctx: Context, amount: int = 1, member: Optional[MentionedMember] = None
     ):
-        confirm = await Confirm(f"Clear {amount} messages?").prompt(ctx)
+        confirm = await Confirm(f"¿Estás seguro de eliminar {amount} mensajes?").prompt(
+            ctx
+        )
 
         await ctx.message.delete()
 
@@ -186,7 +203,14 @@ class ModerationCmds(Cog):
     ):
         for member in members:
             await self.moderate(
-                ctx, member.ban, "baneado", reason, member, "🔨", duration, member.unban
+                ctx,
+                member.ban,
+                ModerationType.BAN,
+                reason,
+                member,
+                "🔨",
+                duration,
+                member.unban,
             )
 
     @command(
@@ -197,7 +221,9 @@ class ModerationCmds(Cog):
         self, ctx: Context, members: Greedy[MentionedMember], *, reason: str
     ):
         for member in members:
-            await self.moderate(ctx, member.kick, "expulsado", reason, member, "⛔")
+            await self.moderate(
+                ctx, member.kick, ModerationType.KICK, reason, member, "⛔"
+            )
 
     @command(
         help="Evita que un usuario envie mensajes o entre a canales de voz", usage=usage
@@ -211,7 +237,7 @@ class ModerationCmds(Cog):
         *,
         reason: str,
     ):
-        role = utils.get(ctx.guild.roles, name="Muted")
+        role = get_role(ctx.guild, GuildSetting.MUTED_ROLE)
 
         if role is None:
             role = await ctx.guild.create_role(name="Muted", color=Color.dark_grey())
@@ -220,11 +246,13 @@ class ModerationCmds(Cog):
             for channel in ctx.guild.channels:
                 await channel.set_permissions(role, overwrite=overwrite)
 
+            crud.set_guild_setting(ctx.guild.id, GuildSetting.MUTED_ROLE, role.id)
+
         for member in members:
             await self.moderate(
                 ctx,
                 cb(member.add_roles, role),
-                "silenciado",
+                ModerationType.MUTE,
                 reason,
                 member,
                 "🔇",

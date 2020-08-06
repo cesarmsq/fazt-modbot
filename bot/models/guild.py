@@ -5,7 +5,7 @@ Copyright 2020 Fazt Community ~ All rights reserved. MIT license.
 from sqlalchemy import BigInteger, Column
 from sqlalchemy.orm import relationship
 
-from . import Base
+from ..database import Base
 
 
 class Guild(Base):

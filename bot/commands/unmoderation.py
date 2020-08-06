@@ -8,7 +8,9 @@ from discord import Color, Embed, Member, utils
 from discord.ext.commands import Bot, Cog, Context, command, has_permissions
 
 from .. import crud
+from ..enums import GuildSetting, ModerationType
 from ..utils import callback as cb
+from ..utils import get_role
 from ..utils import unmoderate as unmod
 
 no_logs_channel_msg = (
@@ -27,18 +29,20 @@ class UnModerationCmds(Cog):
         self,
         ctx: Context,
         callback: Callable,
-        title: str,
-        moderation_type: str,
+        title: ModerationType,
+        moderation_type: ModerationType,
         reason: str,
         member: Member,
     ):
+        title = title.value
+
         await unmod(
             callback, member.id, ctx.guild.id, moderation_type, expiration_needed=False
         )
         await ctx.message.delete()
 
         guild = crud.get_guild(ctx.guild.id)
-        channel = crud.get_set_channel(self.bot, guild, "moderation_logs_channel")
+        channel = crud.get_set_channel(self.bot, guild, GuildSetting.MODERATION_CHANNEL)
 
         if channel:
             embed = Embed(
@@ -77,7 +81,12 @@ class UnModerationCmds(Cog):
         user = ban.user
 
         await self.unmoderate(
-            ctx, cb(ctx.guild.unban, user), "desbaneado", "baneado", reason, user
+            ctx,
+            cb(ctx.guild.unban, user),
+            ModerationType.UNBAN,
+            ModerationType.BAN,
+            reason,
+            user,
         )
 
     @command(
@@ -85,12 +94,16 @@ class UnModerationCmds(Cog):
     )
     @has_permissions(manage_messages=True)
     async def unmute(self, ctx: Context, member: Member, *, reason: str = ""):
-        role = utils.get(ctx.guild.roles, name="Muted")
+        role = get_role(ctx.guild, GuildSetting.MUTED_ROLE)
+
+        if not role:
+            return
+
         await self.unmoderate(
             ctx,
             cb(member.remove_roles, role),
-            "des-silenciado",
-            "silenciado",
+            ModerationType.UNMUTE,
+            ModerationType.MUTE,
             reason,
             member,
         )

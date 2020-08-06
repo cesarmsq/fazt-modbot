@@ -8,7 +8,7 @@ from discord import Color, Embed, Member
 from discord.ext.commands import Bot, Cog, Command, Context, command
 
 from .. import crud
-from ..utils import MentionedMember, can_see_history, show_history
+from ..utils import can_see_history, show_history, to_code_list_str
 
 no_description_msg = "(Sin descripción)"
 
@@ -26,8 +26,8 @@ def display_info(ctx: Context, cmd: Command, simple=False):
         command_description += f"\nUso: `{ctx.prefix}{cmd.name} {cmd.usage}`"
 
     if cmd.aliases:
-        aliases_list = "`, `".join(cmd.aliases)
-        command_description += f"\nAlias: `{aliases_list}`"
+        aliases = to_code_list_str(cmd.aliases)
+        command_description += f"\nAlias: {aliases}"
 
     group_commands = getattr(cmd, "commands", None)
 
@@ -92,10 +92,7 @@ class UserCmds(Cog):
 
     @command()
     async def history(
-        self,
-        ctx: Context,
-        member_or_page: Union[MentionedMember, int, Member] = 1,
-        page: int = 1,
+        self, ctx: Context, member_or_page: Union[int, Member] = 1, page: int = 1,
     ):
         await can_see_history(ctx, member_or_page)
 

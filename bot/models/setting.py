@@ -2,15 +2,16 @@
 Copyright 2020 Fazt Community ~ All rights reserved. MIT license.
 """
 
-from sqlalchemy import BigInteger, Column, ForeignKey, Integer, String
+from sqlalchemy import BigInteger, Column, Enum, ForeignKey, Integer, String
 
-from . import Base
+from ..database import Base
+from ..enums import GuildSetting
 
 
 class Setting(Base):
     __tablename__ = "settings"
 
     id = Column(Integer, primary_key=True)
-    name = Column(String(50), nullable=False)
+    name = Column(Enum(GuildSetting), nullable=False)
     value = Column(String(500), nullable=False)
     guild_id = Column(BigInteger, ForeignKey("guilds.id"))

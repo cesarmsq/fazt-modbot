@@ -6,6 +6,7 @@ from datetime import datetime
 from typing import Callable, Optional
 
 from .. import crud
+from ..enums import ModerationType
 
 
 def get_value(
@@ -23,10 +24,10 @@ def get_value(
 
 
 async def unmoderate(
-    func: Callable,
+    func: Optional[Callable],
     member_id: int,
     guild_id: int,
-    moderation_type: str,
+    moderation_type: ModerationType,
     expiration_needed: bool = True,
 ) -> None:
     if func:

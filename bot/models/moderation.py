@@ -9,20 +9,22 @@ from sqlalchemy import (
     Boolean,
     Column,
     DateTime,
+    Enum,
     ForeignKey,
     Integer,
     String,
 )
 from sqlalchemy.ext.hybrid import hybrid_property
 
-from . import Base
+from ..database import Base
+from ..enums import ModerationType
 
 
 class Moderation(Base):
     __tablename__ = "moderations"
 
     id = Column(Integer, primary_key=True)
-    type = Column(String)
+    type = Column(Enum(ModerationType))
     user_id = Column(BigInteger)
     reason = Column(String)
     moderator_id = Column(BigInteger)
