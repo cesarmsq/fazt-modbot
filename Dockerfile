@@ -16,4 +16,6 @@ COPY . .
 
 RUN pip install -e .
 
+RUN chmod +x entrypoint.sh
+
 ENTRYPOINT ["/entrypoint.sh"]
