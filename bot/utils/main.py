@@ -20,3 +20,8 @@ def callback(func: Callable, *args, **kwargs) -> Callable:
         return await func(*args, **kwargs)
 
     return inner
+
+
+def to_code_list_str(items: list):
+    items_str = "`, `".join(items)
+    return f"`{items_str}`"

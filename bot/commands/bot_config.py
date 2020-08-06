@@ -7,6 +7,7 @@ from discord.ext.commands import Bot, Cog, Context, command
 
 from .. import crud
 from ..config import Settings
+from ..enums import GuildSetting
 from ..utils import to_str_bool
 
 
@@ -19,10 +20,10 @@ class BotConfigCmds(Cog):
 
     @command()
     async def debug(self, ctx: Context, value: bool):
-        crud.set_guild_setting(ctx.guild.id, "debug", to_str_bool(value))
+        crud.set_guild_setting(ctx.guild.id, GuildSetting.DEBUG, to_str_bool(value))
         embed = Embed(
-            title="Debug editado! ✅",
-            description=f"Debug ha sido puesto como `{value}`",
+            title="Debug configurado! ✅",
+            description=f"Debug ha sido configurado como `{value}`",
             color=Color.red(),
         )
         await ctx.send(embed=embed)

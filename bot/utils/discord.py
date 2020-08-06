@@ -1,20 +1,31 @@
 """
 Copyright 2020 Fazt Community ~ All rights reserved. MIT license.
 """
-
 import re
-from typing import List
+from typing import List, Optional
 
-from discord import Member, Message, NotFound, utils
+from discord import Guild, Member, Message, NotFound, Role, utils
 from discord.ext.commands import BadArgument, Bot, Converter, IDConverter
 from discord.ext.menus import Menu, button
 
 from .. import crud
+from ..enums import GuildSetting
+
+
+def get_role(guild: Guild, role_type: GuildSetting) -> Optional[Role]:
+    db_guild = crud.get_guild(guild.id)
+    role_id = crud.get_guild_setting(db_guild, role_type)
+
+    role: Optional[GuildSetting] = None
+    if role_id and role_id.isdigit():
+        role = utils.get(guild.roles, id=int(role_id))
+
+    return role
 
 
 def get_prefix(_: Bot, msg: Message) -> List[str]:
     guild = crud.get_guild(msg.guild.id)
-    prefix_setting = crud.get_guild_setting(guild, "prefix")
+    prefix_setting = crud.get_guild_setting(guild, GuildSetting.PREFIX)
 
     if isinstance(prefix_setting, str):
         prefixes = prefix_setting.split()
@@ -93,12 +104,12 @@ class Confirm(Menu):
         return await channel.send(self.msg)
 
     @button("\N{WHITE HEAVY CHECK MARK}")
-    async def do_confirm(self, payload):
+    async def do_confirm(self, _):
         self.result = True
         self.stop()
 
     @button("\N{CROSS MARK}")
-    async def do_deny(self, payload):
+    async def do_deny(self, _):
         self.result = False
         self.stop()
 

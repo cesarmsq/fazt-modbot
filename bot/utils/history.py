@@ -7,8 +7,9 @@ from typing import List, Optional, Union
 from discord import Embed, Member, TextChannel, utils
 from discord.ext.commands import Bot, CheckFailure, Context
 
+from ..enums import GuildSetting
 from ..models import Moderation
-from . import MentionedMember
+from . import MentionedMember, get_role
 
 
 def show_history(
@@ -30,7 +31,7 @@ def show_history(
         embed.description += f"\n`{index + 1 + plus}` "
 
         if include_type:
-            embed.description += f"[{moderation.type.title()}] "
+            embed.description += f"[{moderation.type.value.title()}] "
 
         reason = moderation.reason or "Sin razón"
         embed.description += f"**{reason}**"
@@ -58,11 +59,12 @@ async def can_see_history(
     if not ctx.author.top_role:
         raise CheckFailure
 
-    contributors = utils.get(ctx.guild.roles, name="Contributors")
+    contributors = get_role(ctx.guild, GuildSetting.MIN_MOD_ROLE)
 
     if contributors is None:
         await ctx.send(
-            "No has creado el rol Contributors, por favor crealo.", delete_after=10
+            "Por favor configura el mínimo rol requerido para usar los comandos de moderación: "
+            f"`{ctx.prefix}set role minmod @Rol`."
         )
         raise CheckFailure
 

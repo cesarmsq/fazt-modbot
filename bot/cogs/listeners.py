@@ -24,40 +24,45 @@ from discord.ext.commands import (
 from .. import crud
 from ..config import Settings
 from ..database import session_factory
+from ..enums import GuildSetting, ModerationType
 from ..models import Moderation
 from ..utils import callback as cb
-from ..utils import to_bool, unmoderate
+from ..utils import get_role, to_bool, unmoderate
 
 
-async def unban(guild: Guild, member: Member, member_id: int):
-    if member:
-        func = member.unban
-    else:
-        bans = await guild.bans()
-        ban = utils.find(lambda b: b.user.id == member_id, bans)
+async def unban(guild: Guild, _: Member, member_id: int):
+    bans = await guild.bans()
+    ban = utils.find(lambda b: b.user.id == member_id, bans)
 
-        func = None
-        if ban:
-            func = cb(guild.unban, ban.user)
+    func = None
+    if ban:
+        func = cb(guild.unban, ban.user)
 
-    await unmoderate(func, member_id, guild.id, "baneado")
+    await unmoderate(func, member_id, guild.id, ModerationType.BAN)
 
 
 async def unmute(guild: Guild, member: Member, __):
-    if member:
-        role = utils.get(guild.roles, name="Muted")
-        func = cb(member.remove_roles, role)
-        await unmoderate(func, member.id, guild.id, "silenciado")
+    if not member:
+        return
+
+    role = get_role(guild, GuildSetting.MUTED_ROLE)
+
+    if not role:
+        return
+
+    func = cb(member.remove_roles, role)
+    await unmoderate(func, member.id, guild.id, ModerationType.MUTE)
 
 
 async def revoke_moderation(guild: Guild, moderation: Moderation):
     if moderation.expiration_date > datetime.utcnow():
         await utils.sleep_until(moderation.expiration_date)
 
-    map_moderations = {"silenciado": unmute, "baneado": unban}
+    map_moderations = {ModerationType.MUTE: unmute, ModerationType.BAN: unban}
 
     member = guild.get_member(moderation.user_id)
     func = map_moderations.get(moderation.type)
+
     if func:
         await func(guild, member, moderation.user_id)
         db = session_factory()
@@ -83,10 +88,10 @@ class Listeners(Cog):
     @Cog.listener()
     async def on_member_join(self, member: Member):
         guild = member.guild
-        moderation = crud.get_moderation("silenciado", member.id, guild.id)
+        moderation = crud.get_moderation(ModerationType.MUTE, member.id, guild.id)
 
         if moderation and not (moderation.expired or moderation.revoked):
-            role = utils.get(guild.roles, name="Muted")
+            role = get_role(guild, GuildSetting.MUTED_ROLE)
             await member.add_roles(role)
 
     @Cog.listener()
@@ -97,7 +102,6 @@ class Listeners(Cog):
 
         original = getattr(error, "original", None)
 
-        unknown_error_msg = "Error desconocido"
         forbidden_message = (
             "El bot no tiene permisos suficientes para realizar esa acción. ||"
             + getattr(original, "text", "")
@@ -109,10 +113,12 @@ class Listeners(Cog):
             ExpectedClosingQuoteError: "Te ha faltado cerrar una comilla.",
             BadArgument: "Has puesto mal algún argumento.",
             CommandError: "No tienes acceso a este comando.",
-            CommandNotFound: f"El comando `{cmd}` no existe.\nPuedes utilizar `{ctx.prefix}help` para ver una lista detallada de los comandos disponibles.",
+            CommandNotFound: f"El comando `{cmd}` no existe.\nPuedes utilizar `{ctx.prefix}help` para ver una lista "
+            f"detallada de los comandos disponibles.",
             CheckFailure: no_permission_msg,
             MissingPermissions: no_permission_msg,
-            MissingRequiredArgument: f"Faltan argumentos. Revisa el `{ctx.prefix}help {ctx.command}` para obtener ayuda acerca del comando.",
+            MissingRequiredArgument: f"Faltan argumentos. Revisa el `{ctx.prefix}help {ctx.command}` para obtener "
+            f"ayuda acerca del comando.",
             BotMissingPermissions: forbidden_message,
         }
 
@@ -127,19 +133,19 @@ class Listeners(Cog):
         embed.description = message
 
         if message is None:
-            embed.description = unknown_error_msg
+            error_msg = str(error)
+            logging.error(error_msg)
+
+            embed.description = "Error desconocido"
             guild = crud.get_guild(ctx.guild.id)
-            setting = crud.get_guild_setting(guild, "debug")
+            setting = crud.get_guild_setting(guild, GuildSetting.DEBUG)
 
             debug = False
             if setting and isinstance(setting, str):
                 debug = to_bool(setting)
 
-            if debug:
-                error_msg = str(error)
-                if error_msg:
-                    embed.description += f":\n||```{error_msg}```||"
-            logging.error(str(error), type(error), getattr(original, "text", ""))
+            if debug and error_msg:
+                embed.description += f":\n||```{error_msg}```||"
 
         embed.description += "\nEste mensaje se eliminará luego de 30 segundos."
 
