@@ -9,6 +9,7 @@ from datetime import datetime
 from discord import Color, Embed, Forbidden, Game, Guild, Member, NotFound, utils
 from discord.ext.commands import (
     BadArgument,
+    BadUnionArgument,
     Bot,
     BotMissingPermissions,
     CheckFailure,
@@ -109,9 +110,11 @@ class Listeners(Cog):
         )
         no_permission_msg = "No tienes permisos suficientes para usar ese comando."
 
+        bad_argument = "Has puesto mal algún argumento."
+
         errors = {
             ExpectedClosingQuoteError: "Te ha faltado cerrar una comilla.",
-            BadArgument: "Has puesto mal algún argumento.",
+            BadArgument: bad_argument,
             CommandError: "No tienes acceso a este comando.",
             CommandNotFound: f"El comando `{cmd}` no existe.\nPuedes utilizar `{ctx.prefix}help` para ver una lista "
             f"detallada de los comandos disponibles.",
@@ -120,6 +123,7 @@ class Listeners(Cog):
             MissingRequiredArgument: f"Faltan argumentos. Revisa el `{ctx.prefix}help {ctx.command}` para obtener "
             f"ayuda acerca del comando.",
             BotMissingPermissions: forbidden_message,
+            BadUnionArgument: bad_argument,
         }
 
         original_errors = {
@@ -134,7 +138,7 @@ class Listeners(Cog):
 
         if message is None:
             error_msg = str(error)
-            logging.error(error_msg)
+            logging.error(f"{type(error).__name__}: {error_msg}")
 
             embed.description = "Error desconocido"
             guild = crud.get_guild(ctx.guild.id)
