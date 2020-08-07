@@ -6,7 +6,16 @@ from asyncio import create_task
 from datetime import datetime, timedelta
 from typing import Callable, Optional
 
-from discord import Color, Embed, Forbidden, Member, Message, PermissionOverwrite, utils
+from discord import (
+    Color,
+    Embed,
+    Forbidden,
+    Member,
+    Message,
+    PermissionOverwrite,
+    Role,
+    utils,
+)
 from discord.ext.commands import Bot, Cog, Context, Greedy, command, has_permissions
 
 from .. import crud
@@ -113,6 +122,12 @@ class ModerationCmds(Cog):
                 embed.set_footer(text="Expira:")
 
             message = member.mention
+
+            if moderation_type == ModerationType.WARN:
+                warning_role: Role = get_role(ctx.guild, GuildSetting.WARNING_ROLE)
+
+                message += f" {warning_role.mention}"
+
             rules_channel = crud.get_set_channel(
                 self.bot, guild, GuildSetting.RULES_CHANNEL
             )
