@@ -24,7 +24,6 @@ from discord.ext.commands import (
 
 from .. import crud
 from ..config import Settings
-from ..database import session_factory
 from ..enums import GuildSetting, ModerationType
 from ..models import Moderation
 from ..utils import callback as cb
@@ -66,9 +65,7 @@ async def revoke_moderation(guild: Guild, moderation: Moderation):
 
     if func:
         await func(guild, member, moderation.user_id)
-        db = session_factory()
-        crud.revoke_moderation(moderation, db)
-        db.close()
+        crud.revoke_moderation(moderation)
 
 
 class Listeners(Cog):
@@ -138,7 +135,7 @@ class Listeners(Cog):
 
         if message is None:
             error_msg = str(error)
-            logging.error(f"{type(error).__name__}: {error_msg}")
+            logging.info(f"Error: {type(error).__name__}: {error_msg}")
 
             embed.description = "Error desconocido"
             guild = crud.get_guild(ctx.guild.id)
@@ -154,3 +151,6 @@ class Listeners(Cog):
         embed.description += "\nEste mensaje se eliminará luego de 30 segundos."
 
         await ctx.send(embed=embed, delete_after=30)
+
+        if message is None:
+            raise error

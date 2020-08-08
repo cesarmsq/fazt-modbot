@@ -5,12 +5,10 @@ Copyright 2020 Fazt Community ~ All rights reserved. MIT license.
 from datetime import datetime
 from typing import Optional
 
-from sqlalchemy.orm import Session
-
 from ..database import session
 from ..enums import ModerationType
 from ..models import Moderation
-from . import create_one, get_query, paginate
+from . import create_one, paginate
 
 
 def moderate(
@@ -60,11 +58,9 @@ def get_all_moderations(
     guild_id: int,
     user_id: Optional[int] = None,
     revoked: Optional[bool] = None,
-    db: Session = None,
     page: int = 1,
 ):
-    query = get_query(Moderation, db)
-    query = query.filter_by(guild_id=guild_id)
+    query = Moderation.query.filter_by(guild_id=guild_id)
 
     if user_id:
         query = query.filter_by(user_id=user_id)
@@ -81,8 +77,6 @@ def get_all_moderations(
     return query.all(), total_pages
 
 
-def revoke_moderation(moderation: Moderation, db: Session = None):
+def revoke_moderation(moderation: Moderation):
     moderation.revoked = True
-    if db is None:
-        db = session
-    db.commit()
+    session.commit()

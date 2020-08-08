@@ -6,13 +6,12 @@ from typing import Optional, Union
 
 from discord import TextChannel
 from discord.ext.commands import Bot
-from sqlalchemy.orm import Session
 
 from ..config import Settings
 from ..database import session
 from ..enums import GuildSetting
 from ..models import Guild, Setting
-from . import get_guild, get_query
+from . import get_guild
 
 
 def create_guild_setting(
@@ -24,10 +23,11 @@ def create_guild_setting(
 
 
 def get_guild_setting(
-    guild: Guild, setting_name: GuildSetting, db: Optional[Session] = None, as_db=False
+    guild: Guild, setting_name: GuildSetting, as_db=False
 ) -> Union[Setting, str, None]:
-    query = get_query(Setting, db)
-    setting = query.filter(Setting.guild == guild, Setting.name == setting_name).first()
+    setting = Setting.query.filter(
+        Setting.guild == guild, Setting.name == setting_name
+    ).first()
     if as_db:
         return setting
     elif setting:
@@ -48,9 +48,9 @@ def set_guild_setting(guild_id: int, setting_name: GuildSetting, setting_value: 
 
 
 def get_set_channel(
-    bot: Bot, guild: Guild, setting_name: GuildSetting, db: Optional[Session] = None
+    bot: Bot, guild: Guild, setting_name: GuildSetting
 ) -> Optional[TextChannel]:
-    channel_id = get_guild_setting(guild, setting_name, db)
+    channel_id = get_guild_setting(guild, setting_name)
 
     channel = None
     if channel_id and channel_id.isdigit():
